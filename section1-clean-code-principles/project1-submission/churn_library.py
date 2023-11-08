@@ -1,18 +1,17 @@
 """
 This is the churn_library.py procedure.
-Artifact produced will be in images and models folders.
 
-Author: HuyenVTK1
-Date: April 30, 2022
+Author: Mohit Bansal
+Date: Nov 7 ,2023
 """
 
-import os
 import logging
-from sklearn.metrics import plot_roc_curve, classification_report
-from sklearn.model_selection import GridSearchCV
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
+import os
 from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import plot_roc_curve, classification_report
 import joblib
 import pandas as pd
 import numpy as np
@@ -20,40 +19,40 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 sns.set()
 
+
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
 logging.basicConfig(
-    filename="logs/churn_library.log",
+    filename="logs/churn_library_2023_11_07.log",
     level=logging.INFO,
     filemode="w",
-    format="%(asctime)-15s %(message)s")
+    format="%(asctime)s %(levelname)-4s %(message)s")
 logger = logging.getLogger()
 
 
-def import_data(pth):
+def import_data(path):
     '''
-    returns dataframe for the csv found at pth
+    returns dataframe for the csv found at path
 
     input:
-            pth: a path to the csv
+            path: a path to the csv
     output:
-            df: pandas dataframe
+            df_data: pandas dataframe
     '''
-    df = pd.read_csv(pth)
+    df_data = pd.read_csv(path)
+    return df_data
 
-    return df
 
-
-def perform_eda(df):
+def perform_eda(df_data):
     '''
-    perform eda on df and save figures to images folder
+    perform eda on df_data and save figures to images folder
     input:
-            df: pandas dataframe
+            df_data: pandas dataframe
 
     output:
             None
     '''
-    df["Churn"] = df["Attrition_Flag"].apply(
+    df_data["Churn"] = df_data["Attrition_Flag"].apply(
         lambda val: 0 if val == "Existing Customer" else 1)
 
     column_name_lst = ["Churn", "Customer_Age",
@@ -61,48 +60,48 @@ def perform_eda(df):
     for column_name in column_name_lst:
         plt.figure(figsize=(20, 10))
         if column_name in ("Churn", "Customer_Age"):
-            df[column_name].hist()
+            df_data[column_name].hist()
         elif column_name == "Marital_Status":
-            df[column_name].value_counts('normalize').plot(kind='bar')
+            df_data[column_name].value_counts('normalize').plot(kind='bar')
         elif column_name == "Total_Trans_Ct":
-            sns.histplot(df[column_name], stat='density', kde=True)
+            sns.histplot(df_data[column_name], stat='density', kde=True)
         elif column_name == "Heatmap":
-            sns.heatmap(df.corr(), annot=False, cmap='Dark2_r', linewidths=2)
+            sns.heatmap(df_data.corr(), annot=False, cmap='Dark2_r', linewidths=2)
         plt.savefig("images/eda/%s.jpg" % column_name)
         plt.close()
 
 
-def encoder_helper(df, category_lst, response):
+def encoder_helper(df_data, category_lst, response):
     '''
     helper function to turn each categorical column into a new column with
     propotion of churn for each category - associated with cell 15 from the notebook
 
     input:
-            df: pandas dataframe
+            df_data: pandas dataframe
             category_lst: list of columns that contain categorical features
             response: string of response name [optional argument that \
                 could be used for naming variables or index y column]
 
     output:
-            df: pandas dataframe with new columns for
+            df_data: pandas dataframe with new columns for
     '''
     for category_column_name in category_lst:
         category_column_lst = []
-        category_column_groups = df.groupby(
+        category_column_groups = df_data.groupby(
             category_column_name).mean()[response]
 
-        for val in df[category_column_name]:
+        for val in df_data[category_column_name]:
             category_column_lst.append(category_column_groups.loc[val])
 
-        df[category_column_name + "_" + response] = category_column_lst
+        df_data[category_column_name + "_" + response] = category_column_lst
 
-    return df
+    return df_data
 
 
-def perform_feature_engineering(df, response):
+def perform_feature_engineering(df_data, response):
     '''
     input:
-              df: pandas dataframe
+              df_data: pandas dataframe
               response: string of response name [optional argument that \
                   could be used for naming variables or index y column]
 
@@ -112,8 +111,8 @@ def perform_feature_engineering(df, response):
               y_train: y training data
               y_test: y testing data
     '''
-    x = pd.DataFrame()
-    y = df[response]
+    x_data = pd.DataFrame()
+    y_data = df_data[response]
 
     keep_cols = [
         "Customer_Age",
@@ -136,16 +135,21 @@ def perform_feature_engineering(df, response):
         "Income_Category_Churn",
         "Card_Category_Churn"]
 
-    x[keep_cols] = df[keep_cols]
+    x_data[keep_cols] = df_data[keep_cols]
 
     x_train, x_test, y_train, y_test = train_test_split(
-        x, y, test_size=0.3, random_state=42)
+        x_data, y_data, test_size=0.3, random_state=42)
 
     return x_train, x_test, y_train, y_test
 
 
-def classification_report_image(y_train, y_test, y_train_preds_lr, \
-                                y_train_preds_rf, y_test_preds_lr, y_test_preds_rf):
+def classification_report_image(
+        y_train,
+        y_test,
+        y_train_preds_lr,
+        y_train_preds_rf,
+        y_test_preds_lr,
+        y_test_preds_rf):
     '''
     produces classification report for training and testing results and stores report as image
     in images folder
@@ -281,6 +285,7 @@ def train_models(x_train, x_test, y_train, y_test):
 
 
 if __name__ == "__main__":
+
     logger.info("Import data")
     DF_RAW = import_data("data/bank_data.csv")
 
