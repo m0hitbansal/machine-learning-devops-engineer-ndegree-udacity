@@ -1,5 +1,5 @@
 # Building a Reproducible Model Workflow
-
+https://github.com/udacity/cd0581-building-a-reproducible-model-workflow-exercises
 This course empowers the students to be more efficient, effective, and productive in modern, real-world ML projects by adopting best practices around reproducible workflows. In particular, it teaches the fundamentals of MLops and how to:
 - Create a clean, organized, reproducible, end-to-end machine learning pipeline from scratch using MLflow
 - Clean and validate the data using pytest 
